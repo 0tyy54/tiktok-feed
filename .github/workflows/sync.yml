@@ -26,7 +26,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
       - run: npm install
       - name: Coletar posts
         run: npm run fetch-posts -- ${{ github.event_name == 'workflow_dispatch' && '--force' || '' }}
