@@ -16,8 +16,11 @@ h1 { margin: 0; font-size: clamp(2rem, 4vw, 3.1rem); letter-spacing: -.06em; lin
 .thumb { position: relative; aspect-ratio: 9 / 16; background: linear-gradient(145deg, #242424, #151515); overflow: hidden; }
 .thumb img { width: 100%; height: 100%; display: block; object-fit: cover; transition: transform .35s ease; }
 .video-card:hover .thumb img { transform: scale(1.035); }
+.hover-preview { position: absolute; inset: 0; z-index: 1; pointer-events: none; opacity: 0; overflow: hidden; transition: opacity .18s ease; }
+.hover-preview video { width: 100%; height: 100%; display: block; object-fit: cover; transform: scale(1.05); }
+.video-card.is-previewing .hover-preview { opacity: 1; }
 .placeholder { height: 100%; display: grid; place-items: center; color: #777; font-size: 2.5rem; background: linear-gradient(145deg, #2e242a, #171717); }
-.play { position: absolute; inset: auto auto 12px 12px; display: grid; place-items: center; width: 34px; height: 34px; padding-left: 2px; border-radius: 50%; color: white; background: rgba(0,0,0,.64); backdrop-filter: blur(8px); font-size: .8rem; }
+.play { position: absolute; z-index: 2; inset: auto auto 12px 12px; display: grid; place-items: center; width: 34px; height: 34px; padding-left: 2px; border-radius: 50%; color: white; background: rgba(0,0,0,.64); backdrop-filter: blur(8px); font-size: .8rem; }
 .card-info { padding: 11px 12px 13px; }
 .creator { overflow: hidden; margin: 0; color: #fafafa; font-weight: 650; font-size: .88rem; text-overflow: ellipsis; white-space: nowrap; }
 .published { margin: 4px 0 8px; color: #9c9c9c; font-size: .74rem; }
@@ -30,8 +33,3 @@ h1 { margin: 0; font-size: clamp(2rem, 4vw, 3.1rem); letter-spacing: -.06em; lin
 .video-modal { width: min(600px, calc(100% - 28px)); max-height: min(92vh, 850px); padding: 0; border: 1px solid #343434; border-radius: 16px; background: #181818; color: #fff; box-shadow: 0 24px 80px #000a; }
 .video-modal::backdrop { background: rgba(0,0,0,.8); backdrop-filter: blur(4px); }.modal-shell { padding: 18px; }.modal-header { display: flex; align-items: start; justify-content: space-between; gap: 12px; margin-bottom: 14px; }.modal-creator { margin: 0 0 4px; color: #b9b9b9; font-size: .82rem; }.modal-header h2 { margin: 0; font-size: 1.1rem; }.icon-button { width: 34px; height: 34px; border: 0; border-radius: 50%; background: #292929; color: #fff; cursor: pointer; font-size: 1.55rem; line-height: 1; }.player-container { display: grid; min-height: 340px; max-height: 68vh; place-items: center; overflow: hidden; border-radius: 10px; background: #0b0b0b; }.player-container iframe { display: block; width: min(100%, 380px); height: min(68vh, 675px); border: 0; }.embed-fallback { padding: 30px; color: #aaa; text-align: center; }.open-tiktok { display: inline-flex; margin-top: 15px; color: #fff; font-size: .88rem; text-underline-offset: 3px; }
 @media (max-width: 620px) { .page { width: min(100% - 28px, 1440px); padding-top: 29px; }.topbar { align-items: start; flex-direction: column; gap: 15px; margin-bottom: 24px; padding-bottom: 22px; }.status { justify-content: flex-start; }.video-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }.card-info { padding: 9px 9px 11px; }.caption { display: none; }.player-container { min-height: 300px; } }
-
-.hover-preview { position:absolute; inset:0; z-index:1; pointer-events:none; opacity:0; overflow:hidden; transition:opacity .18s ease; }
-.hover-preview iframe { width:100%; height:100%; border:0; transform:scale(1.05); }
-.video-card.is-previewing .hover-preview { opacity:1; }
-.play { z-index:2; }
