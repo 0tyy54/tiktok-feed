@@ -9,6 +9,7 @@ const modalCreator = document.querySelector('#modal-creator');
 
 let posts = [];
 let showingAll = false;
+let previewingCard = null;
 const TZ = 'America/Sao_Paulo';
 
 function dateFormat(value, options) { return new Intl.DateTimeFormat('pt-BR', { timeZone: TZ, ...options }).format(new Date(value)); }
@@ -24,6 +25,10 @@ function relativeDay(value) {
   return dateFormat(value, { weekday: 'long', day: '2-digit', month: 'long' }).replace(/^./, char => char.toUpperCase());
 }
 function dayKey(value) { return new Intl.DateTimeFormat('en-CA', { timeZone: TZ }).format(new Date(value)); }
+function viewCount(value) {
+  if (!Number.isFinite(Number(value))) return null;
+  return new Intl.NumberFormat('pt-BR', { notation: 'compact', maximumFractionDigits: 1 }).format(Number(value));
+}
 function visiblePosts() {
   if (showingAll) return posts;
   const limit = Date.now() - 48 * 60 * 60 * 1000;
@@ -36,12 +41,33 @@ function card(post) {
   const thumbnail = post.thumbnailUrl
     ? `<img src="${escapeAttribute(post.thumbnailUrl)}" alt="Miniatura do vídeo de @${escapeHtml(post.username)}" loading="lazy">`
     : '<div class="placeholder" aria-hidden="true">♪</div>';
-  button.innerHTML = `<div class="thumb">${thumbnail}<span class="play" aria-hidden="true">▶</span></div><div class="card-info"><p class="creator">@${escapeHtml(post.username)}</p><p class="published">${dateFormat(post.publishedAt, { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</p><p class="caption">${escapeHtml(post.caption || 'Sem legenda')}</p></div>`;
+  const views = viewCount(post.viewCount);
+  button.innerHTML = `<div class="thumb">${thumbnail}<div class="hover-preview" aria-hidden="true"></div><span class="play" aria-hidden="true">▶</span></div><div class="card-info"><p class="creator">@${escapeHtml(post.username)}</p><p class="published">${dateFormat(post.publishedAt, { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}${views ? ` · ${views} visualizações` : ''}</p><p class="caption">${escapeHtml(post.caption || 'Sem legenda')}</p></div>`;
   button.addEventListener('click', () => openVideo(post));
+  button.addEventListener('pointerenter', () => startPreview(button, post));
+  button.addEventListener('pointerleave', () => stopPreview(button));
   return button;
 }
 function escapeHtml(value) { const div = document.createElement('div'); div.textContent = String(value || ''); return div.innerHTML; }
 function escapeAttribute(value) { return escapeHtml(value).replace(/"/g, '&quot;'); }
+function stopPreview(card = previewingCard) {
+  if (!card) return;
+  card.querySelector('.hover-preview').replaceChildren();
+  card.classList.remove('is-previewing');
+  if (previewingCard === card) previewingCard = null;
+}
+function startPreview(card, post) {
+  if (window.matchMedia('(hover: none)').matches || previewingCard === card) return;
+  stopPreview();
+  const iframe = document.createElement('iframe');
+  iframe.src = `https://www.tiktok.com/player/v1/${encodeURIComponent(post.id)}?autoplay=1&muted=1&loop=1`;
+  iframe.title = '';
+  iframe.tabIndex = -1;
+  iframe.allow = 'autoplay; encrypted-media';
+  card.querySelector('.hover-preview').append(iframe);
+  card.classList.add('is-previewing');
+  previewingCard = card;
+}
 function render() {
   const visible = visiblePosts(); feed.replaceChildren();
   emptyState.hidden = visible.length !== 0;
