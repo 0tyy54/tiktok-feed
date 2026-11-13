@@ -6,106 +6,25 @@ const player = document.querySelector('#player-container');
 const closeModal = document.querySelector('#close-modal');
 const openTikTok = document.querySelector('#open-tiktok');
 const modalCreator = document.querySelector('#modal-creator');
-
 let posts = [];
 let showingAll = false;
 let previewingCard = null;
 const TZ = 'America/Sao_Paulo';
-
 function dateFormat(value, options) { return new Intl.DateTimeFormat('pt-BR', { timeZone: TZ, ...options }).format(new Date(value)); }
-function relativeDay(value) {
-  const date = new Date(value);
-  const today = new Date();
-  const formatter = new Intl.DateTimeFormat('en-CA', { timeZone: TZ });
-  const current = formatter.format(today);
-  const yesterdayDate = new Date(today.getTime() - 86400000);
-  const target = formatter.format(date);
-  if (target === current) return 'Hoje';
-  if (target === formatter.format(yesterdayDate)) return 'Ontem';
-  return dateFormat(value, { weekday: 'long', day: '2-digit', month: 'long' }).replace(/^./, char => char.toUpperCase());
-}
+function relativeDay(value) { const date = new Date(value); const today = new Date(); const formatter = new Intl.DateTimeFormat('en-CA', { timeZone: TZ }); const current = formatter.format(today); const yesterdayDate = new Date(today.getTime() - 86400000); const target = formatter.format(date); if (target === current) return 'Hoje'; if (target === formatter.format(yesterdayDate)) return 'Ontem'; return dateFormat(value, { weekday: 'long', day: '2-digit', month: 'long' }).replace(/^./, char => char.toUpperCase()); }
 function dayKey(value) { return new Intl.DateTimeFormat('en-CA', { timeZone: TZ }).format(new Date(value)); }
-function viewCount(value) {
-  if (!Number.isFinite(Number(value))) return null;
-  return new Intl.NumberFormat('pt-BR', { notation: 'compact', maximumFractionDigits: 1 }).format(Number(value));
-}
-function visiblePosts() {
-  if (showingAll) return posts;
-  const limit = Date.now() - 48 * 60 * 60 * 1000;
-  return posts.filter(post => new Date(post.publishedAt).getTime() >= limit);
-}
-function card(post) {
-  const button = document.createElement('button');
-  button.className = 'video-card'; button.type = 'button';
-  button.setAttribute('aria-label', `Abrir vídeo de @${post.username}`);
-  const thumbnail = post.thumbnailUrl
-    ? `<img src="${escapeAttribute(post.thumbnailUrl)}" alt="Miniatura do vídeo de @${escapeHtml(post.username)}" loading="lazy">`
-    : '<div class="placeholder" aria-hidden="true">♪</div>';
-  const views = viewCount(post.viewCount);
-  button.innerHTML = `<div class="thumb">${thumbnail}<div class="hover-preview" aria-hidden="true"></div><span class="play" aria-hidden="true">▶</span></div><div class="card-info"><p class="creator">@${escapeHtml(post.username)}</p><p class="published">${dateFormat(post.publishedAt, { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}${views ? ` · ${views} visualizações` : ''}</p><p class="caption">${escapeHtml(post.caption || 'Sem legenda')}</p></div>`;
-  button.addEventListener('click', () => openVideo(post));
-  button.addEventListener('pointerenter', () => startPreview(button, post));
-  button.addEventListener('pointerleave', () => stopPreview(button));
-  return button;
-}
+function viewCount(value) { return Number.isFinite(Number(value)) ? new Intl.NumberFormat('pt-BR', { notation: 'compact', maximumFractionDigits: 1 }).format(Number(value)) : null; }
+function visiblePosts() { if (showingAll) return posts; const limit = Date.now() - 48 * 60 * 60 * 1000; return posts.filter(post => new Date(post.publishedAt).getTime() >= limit); }
 function escapeHtml(value) { const div = document.createElement('div'); div.textContent = String(value || ''); return div.innerHTML; }
 function escapeAttribute(value) { return escapeHtml(value).replace(/"/g, '&quot;'); }
-function stopPreview(card = previewingCard) {
-  if (!card) return;
-  card.querySelector('.hover-preview').replaceChildren();
-  card.classList.remove('is-previewing');
-  if (previewingCard === card) previewingCard = null;
-}
-function startPreview(card, post) {
-  if (window.matchMedia('(hover: none)').matches || previewingCard === card) return;
-  stopPreview();
-  const iframe = document.createElement('iframe');
-  iframe.src = `https://www.tiktok.com/player/v1/${encodeURIComponent(post.id)}?autoplay=1&muted=1&loop=1`;
-  iframe.title = '';
-  iframe.tabIndex = -1;
-  iframe.allow = 'autoplay; encrypted-media';
-  card.querySelector('.hover-preview').append(iframe);
-  card.classList.add('is-previewing');
-  previewingCard = card;
-}
-function render() {
-  const visible = visiblePosts(); feed.replaceChildren();
-  emptyState.hidden = visible.length !== 0;
-  const groups = new Map();
-  visible.forEach(post => { const key = dayKey(post.publishedAt); groups.set(key, [...(groups.get(key) || []), post]); });
-  groups.forEach(group => {
-    const section = document.createElement('section'); section.className = 'day-section';
-    const heading = document.createElement('h2'); heading.className = 'day-heading'; heading.textContent = relativeDay(group[0].publishedAt);
-    const grid = document.createElement('div'); grid.className = 'video-grid'; group.forEach(post => grid.append(card(post)));
-    section.append(heading, grid); feed.append(section);
-  });
-  showMore.hidden = posts.length <= visible.length;
-  showMore.textContent = showingAll ? 'Mostrar apenas as últimas 48 horas' : `Mostrar mais (${posts.length - visible.length})`;
-}
-function openVideo(post) {
-  modalCreator.textContent = `@${post.username}`; openTikTok.href = post.url;
-  player.replaceChildren();
-  const iframe = document.createElement('iframe');
-  iframe.src = `https://www.tiktok.com/player/v1/${encodeURIComponent(post.id)}`;
-  iframe.title = `Vídeo de @${post.username}`; iframe.allow = 'fullscreen; encrypted-media'; iframe.allowFullscreen = true;
-  iframe.addEventListener('error', () => { player.innerHTML = '<p class="embed-fallback">Não foi possível carregar o player. Use o link abaixo para abrir no TikTok.</p>'; });
-  player.append(iframe); modal.showModal();
-}
+function stopPreview(card = previewingCard) { if (!card) return; card.querySelector('.hover-preview').replaceChildren(); card.classList.remove('is-previewing'); if (previewingCard === card) previewingCard = null; }
+function startPreview(card, post) { if (window.matchMedia('(hover: none)').matches || previewingCard === card || !post.previewUrl) return; stopPreview(); const video = document.createElement('video'); video.src = post.previewUrl; video.muted = true; video.loop = true; video.playsInline = true; video.preload = 'metadata'; video.setAttribute('aria-hidden', 'true'); card.querySelector('.hover-preview').append(video); card.classList.add('is-previewing'); previewingCard = card; video.play().catch(() => stopPreview(card)); }
+function card(post) { const button = document.createElement('button'); button.className = 'video-card'; button.type = 'button'; button.setAttribute('aria-label', `Abrir vídeo de @${post.username}`); const thumbnail = post.thumbnailUrl ? `<img src="${escapeAttribute(post.thumbnailUrl)}" alt="Miniatura do vídeo de @${escapeHtml(post.username)}" loading="lazy">` : '<div class="placeholder" aria-hidden="true">♪</div>'; const views = viewCount(post.viewCount); button.innerHTML = `<div class="thumb">${thumbnail}<div class="hover-preview" aria-hidden="true"></div><span class="play" aria-hidden="true">▶</span></div><div class="card-info"><p class="creator">@${escapeHtml(post.username)}</p><p class="published">${dateFormat(post.publishedAt, { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}${views ? ` · ${views} visualizações` : ''}</p><p class="caption">${escapeHtml(post.caption || 'Sem legenda')}</p></div>`; button.addEventListener('click', () => openVideo(post)); button.addEventListener('pointerenter', () => startPreview(button, post)); button.addEventListener('pointerleave', () => stopPreview(button)); return button; }
+function render() { const visible = visiblePosts(); feed.replaceChildren(); emptyState.hidden = visible.length !== 0; const groups = new Map(); visible.forEach(post => { const key = dayKey(post.publishedAt); groups.set(key, [...(groups.get(key) || []), post]); }); groups.forEach(group => { const section = document.createElement('section'); section.className = 'day-section'; const heading = document.createElement('h2'); heading.className = 'day-heading'; heading.textContent = relativeDay(group[0].publishedAt); const grid = document.createElement('div'); grid.className = 'video-grid'; group.forEach(post => grid.append(card(post))); section.append(heading, grid); feed.append(section); }); showMore.hidden = posts.length <= visible.length; showMore.textContent = showingAll ? 'Mostrar apenas as últimas 48 horas' : `Mostrar mais (${posts.length - visible.length})`; }
+function openVideo(post) { modalCreator.textContent = `@${post.username}`; openTikTok.href = post.url; player.replaceChildren(); const iframe = document.createElement('iframe'); iframe.src = `https://www.tiktok.com/player/v1/${encodeURIComponent(post.id)}`; iframe.title = `Vídeo de @${post.username}`; iframe.allow = 'fullscreen; encrypted-media'; iframe.allowFullscreen = true; iframe.addEventListener('error', () => { player.innerHTML = '<p class="embed-fallback">Não foi possível carregar o player. Use o link abaixo para abrir no TikTok.</p>'; }); player.append(iframe); modal.showModal(); }
 function closeVideo() { modal.close(); player.replaceChildren(); }
 closeModal.addEventListener('click', closeVideo);
 modal.addEventListener('click', event => { if (event.target === modal) closeVideo(); });
 showMore.addEventListener('click', () => { showingAll = !showingAll; render(); });
-
-async function init() {
-  try {
-    const response = await fetch('data/posts.json', { cache: 'no-store' });
-    if (!response.ok) throw new Error('Arquivo de posts indisponível');
-    const data = await response.json();
-    posts = Array.isArray(data.posts) ? data.posts.filter(post => post.id && post.publishedAt && post.url) : [];
-    posts.sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt));
-    document.querySelector('#updated-at').textContent = data.updatedAt ? `Atualização: ${dateFormat(data.updatedAt, { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}` : 'Ainda sem atualização';
-    document.querySelector('#video-count').textContent = `${posts.length} ${posts.length === 1 ? 'vídeo' : 'vídeos'}`;
-  } catch (error) { console.warn(error); emptyState.querySelector('p').textContent = 'Não foi possível carregar o arquivo de vídeos agora.'; }
-  render();
-}
+async function init() { try { const response = await fetch('data/posts.json', { cache: 'no-store' }); if (!response.ok) throw new Error('Arquivo de posts indisponível'); const data = await response.json(); posts = Array.isArray(data.posts) ? data.posts.filter(post => post.id && post.publishedAt && post.url) : []; posts.sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt)); document.querySelector('#updated-at').textContent = data.updatedAt ? `Atualização: ${dateFormat(data.updatedAt, { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}` : 'Ainda sem atualização'; document.querySelector('#video-count').textContent = `${posts.length} ${posts.length === 1 ? 'vídeo' : 'vídeos'}`; } catch (error) { console.warn(error); emptyState.querySelector('p').textContent = 'Não foi possível carregar o arquivo de vídeos agora.'; } render(); }
 init();
