@@ -1,0 +1,13 @@
+{
+  "name": "tiktok-feed-pessoal",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "fetch-posts": "node scripts/fetch-posts.js",
+    "check": "node --check app.js && node --check scripts/fetch-posts.js"
+  },
+  "dependencies": {
+    "apify-client": "^2.12.1"
+  }
+}

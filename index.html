@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#101010" />
+    <title>TikTok Feed</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main class="page">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Feed pessoal</p>
+          <h1>TikTok Feed</h1>
+        </div>
+        <div class="status" aria-live="polite">
+          <span id="updated-at">Atualização: —</span>
+          <span class="status-dot" aria-hidden="true"></span>
+          <span id="video-count">0 vídeos</span>
+        </div>
+      </header>
+
+      <section id="feed" aria-label="Vídeos recentes"></section>
+      <section id="empty-state" class="empty-state" hidden>
+        <div class="empty-mark">♪</div>
+        <h2>Nenhum vídeo para mostrar</h2>
+        <p>Quando a primeira coleta terminar, os vídeos recentes aparecerão aqui.</p>
+      </section>
+      <button id="show-more" class="show-more" type="button" hidden>Mostrar mais</button>
+    </main>
+
+    <dialog id="video-modal" class="video-modal" aria-labelledby="modal-title">
+      <div class="modal-shell">
+        <div class="modal-header">
+          <div>
+            <p id="modal-creator" class="modal-creator"></p>
+            <h2 id="modal-title">Vídeo no TikTok</h2>
+          </div>
+          <button id="close-modal" class="icon-button" type="button" aria-label="Fechar">×</button>
+        </div>
+        <div id="player-container" class="player-container"></div>
+        <a id="open-tiktok" class="open-tiktok" target="_blank" rel="noopener noreferrer">Abrir no TikTok <span aria-hidden="true">↗</span></a>
+      </div>
+    </dialog>
+
+    <script src="app.js" defer></script>
+  </body>
+</html>
